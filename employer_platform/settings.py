@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'business',
     'rest_framework',
+    'rest_framework_simplejwt'
 ]
 
 MIDDLEWARE = [
@@ -78,10 +80,10 @@ WSGI_APPLICATION = 'employer_platform.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_db',  # Matches POSTGRES_DB in docker-compose.yml
-        'USER': 'django_user',  # Matches POSTGRES_USER in docker-compose.yml
-        'PASSWORD': 'django_password',  # Matches POSTGRES_PASSWORD in docker-compose.yml
-        'HOST': 'db',  # This should be the service name in docker-compose.yml
+        'NAME': 'aiemployer',  # Matches POSTGRES_DB in docker-compose.yml
+        'USER': 'postgres',  # Matches POSTGRES_USER in docker-compose.yml
+        'PASSWORD': 'Jabulani009$',  # Matches POSTGRES_PASSWORD in docker-compose.yml
+        'HOST': 'localhost',  # This should be the service name in docker-compose.yml
         'PORT': 5432,  # Default PostgreSQL port
     }
 }
@@ -127,3 +129,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'accounts.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
