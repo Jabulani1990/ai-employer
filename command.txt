@@ -1,0 +1,6 @@
+Start worker
+celery -A employer_platform worker --loglevel=info
+
+Start Scheduler
+celery -A employer_platform beat --loglevel=info
+

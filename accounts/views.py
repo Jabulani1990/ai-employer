@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from django.contrib.auth import get_user_model
 from .models import Skill
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, SkillSerializer, AssignSkillsSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -46,4 +47,17 @@ class AssignSkillsView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+    
+class LogoutView(APIView):
+    """User Logout"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"message": "Successfully logged out"}, status=200)
+        except Exception as e:
+            return Response({"error": "Invalid token"}, status=400)
 

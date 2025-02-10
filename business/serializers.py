@@ -1,12 +1,26 @@
 from rest_framework import serializers
-from .models import Business, AIEmployer
+from .models import Business, AIEmployer, AIEmployerSettings
 
 class BusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
         fields = ['name', 'email', 'industry_type', 'contact_number']
 
+    def create(self, validated_data):
+        """Ensure the owner is set automatically"""
+        request = self.context.get('request')
+        if request and request.user:
+            validated_data['owner'] = request.user  # Assign logged-in user as owner
+        return super().create(validated_data)
+
+
 class AIEmployerSerializer(serializers.ModelSerializer):
     class Meta:
         model = AIEmployer
         fields = ['id', 'business', 'budget', 'created_at', 'ai_employer_type', 'location', 'industry_category']
+
+
+class AIEmployerSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIEmployerSettings
+        fields = "__all__"

@@ -1,12 +1,33 @@
 from django.db import models
 from django.utils.timezone import now
 from django.utils.text import slugify
-
 from accounts.models import User
+from business.services.matching import find_best_candidate
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from celery import shared_task
+
+from django.contrib.auth import get_user_model
+
+from employer_platform import settings
+
+User = get_user_model()
+
+
+
 
 
 # Business Model
 class Business(models.Model):
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name="business",
+        help_text="The user who owns this business.",
+        null=True,
+        blank=True
+    )
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     industry_type = models.CharField(max_length=100)
@@ -68,4 +89,53 @@ class Task(models.Model):
         self.status = 'assigned'
         self.is_assigned = True
         self.save()
+
+    def auto_assign(self):
+        """ AI automatically assigns the best freelancer to this task. """
+        best_candidate = find_best_candidate(self)
+        if best_candidate:
+            self.assign_task(best_candidate)
+
+
+@receiver(post_save, sender=Task)
+def auto_assign_task(sender, instance, created, **kwargs):
+    """Real-time assignment when a task is created."""
+    if created and not instance.assigned_user:
+        best_candidate = find_best_candidate(instance)
+        if best_candidate:
+            instance.assigned_user = best_candidate
+            instance.status = 'assigned'
+            instance.save()
+
+@shared_task
+def assign_unassigned_tasks():
+    """Periodic AI task assignment for unassigned tasks."""
+    unassigned_tasks = Task.objects.filter(status='pending', assigned_user__isnull=True)
+    
+    for task in unassigned_tasks:
+        best_candidate = find_best_candidate(task)
+        if best_candidate:
+            task.assigned_user = best_candidate
+            task.status = 'assigned'
+            task.save()
+    
+
+class AIEmployerSettings(models.Model):
+    business_owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name="ai_settings")
+    
+    # Auto-assignment toggle
+    auto_assign = models.BooleanField(default=True)  # Default: AI assigns freelancers
+    
+    # AI Suggestion Override
+    allow_override = models.BooleanField(default=True)  # Default: Business owner can override AI
+    
+    # Optional Customization: Matching Preferences
+    prioritize_low_cost = models.BooleanField(default=False)
+    prioritize_fast_response = models.BooleanField(default=False)
+    prioritize_experience = models.BooleanField(default=True)  # Default: Experience is valued
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.business_owner.username} - AI Settings"
 
