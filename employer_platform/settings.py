@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'business',
     'rest_framework',
     'rest_framework_simplejwt',
-    'django_celery_beat'
+    'django_celery_beat',
+    'ai_workers'
 ]
 
 MIDDLEWARE = [

@@ -81,6 +81,9 @@ class AIEmployer(models.Model):
         null=True, blank=True
     )
 
+    def get_ai_workers(self):
+        """Fetch all AI Workers linked to this AI Employer"""
+        return self.ai_workers.all()
 
     def save(self, *args, **kwargs):
         """ Auto-generate name if not provided """
