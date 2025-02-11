@@ -28,6 +28,8 @@ class User(AbstractUser):
 
     completed_tasks = models.IntegerField(default=0)
     workload = models.IntegerField(default=0)  # Tracks active tasks assigned
+    rating_score = models.FloatField(default=0.0)
+    hourly_rate = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.username})" if self.first_name and self.last_name else self.username

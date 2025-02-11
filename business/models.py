@@ -9,8 +9,8 @@ from django.dispatch import receiver
 from celery import shared_task
 
 from django.contrib.auth import get_user_model
-
 from employer_platform import settings
+from django.db.models import Count, Q
 
 User = get_user_model()
 
@@ -34,6 +34,17 @@ class Business(models.Model):
     contact_number = models.CharField(max_length=15, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # New Fields
+    business_goals = models.TextField(
+        help_text="Describe the company's goals and long-term vision.",
+        null=True, blank=True
+    )
+    daily_operations = models.JSONField(
+        help_text="List of daily business operations and responsibilities.",
+        null=True, blank=True
+    )
+
+
     def __str__(self):
         return self.name
 
@@ -53,6 +64,24 @@ class AIEmployer(models.Model):
     status = models.CharField(max_length=50, choices=[('active', 'Active'), ('inactive', 'Inactive'), ('suspended', 'Suspended')], default='active')
     joining_date = models.DateTimeField(default=now)
 
+        # New Fields
+    past_tasks = models.JSONField(
+        help_text="AI memory of previously generated and completed tasks.",
+        null=True, blank=True
+    )
+    task_generation_mode = models.CharField(
+        max_length=50,
+        choices=[('manual', 'Manual'), ('semi_automatic', 'Semi-Automatic'), ('fully_automatic', 'Fully Automatic')],
+        default='semi_automatic',
+        help_text="How aggressively AI should generate tasks."
+    )
+    priority_focus = models.CharField(
+        max_length=255,
+        help_text="Which business goal should AI prioritize? (e.g., Marketing, Sales, Customer Support)",
+        null=True, blank=True
+    )
+
+
     def save(self, *args, **kwargs):
         """ Auto-generate name if not provided """
         if not self.name:
@@ -61,6 +90,24 @@ class AIEmployer(models.Model):
 
     def __str__(self):
         return f"AI Employer for {self.business.name}"
+    
+class TaskCategory(models.Model):
+    INDUSTRY_CHOICES = [
+        ('tech', 'Technology'), ('finance', 'Finance'), ('healthcare', 'Healthcare'), ('marketing', 'Marketing'), ('other', 'Other')
+    ]
+    JOB_ROLE_CHOICES = [
+        ('data_entry', 'Data Entry'), ('design', 'Design'), ('writing', 'Writing'), ('development', 'Development'), ('other', 'Other')
+    ]
+    COMPLEXITY_CHOICES = [
+        ('simple', 'Simple'), ('intermediate', 'Intermediate'), ('advanced', 'Advanced')
+    ]
+
+    industry = models.CharField(max_length=50, choices=INDUSTRY_CHOICES)
+    job_role = models.CharField(max_length=50, choices=JOB_ROLE_CHOICES)
+    complexity = models.CharField(max_length=50, choices=COMPLEXITY_CHOICES)
+
+    def __str__(self):
+        return f"{self.get_industry_display()} - {self.get_job_role_display()} - {self.get_complexity_display()}"
 
 
 # Task Model
@@ -72,13 +119,27 @@ class Task(models.Model):
     assigned_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks')
     created_at = models.DateTimeField(auto_now_add=True)
     deadline = models.DateTimeField(null=True, blank=True)
-    payment = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    #payment = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    budget = models.FloatField(default=0.00)
     status = models.CharField(
         max_length=50,
         choices=[('pending', 'Pending'), ('assigned', 'Assigned'), ('completed', 'Completed')],
         default='pending'
     )
     is_assigned = models.BooleanField(default=False)
+    category = models.ForeignKey(TaskCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks')
+
+    # New Fields
+    goal_alignment = models.CharField(
+        max_length=255,
+        help_text="Which business goal does this task support?",
+        null=True, blank=True
+    )
+    urgency = models.IntegerField(
+        choices=[(1, 'Low'), (2, 'Medium'), (3, 'High')],
+        default=2,
+        help_text="How urgent is this task?"
+    )
 
     def __str__(self):
         return f"{self.title} - {self.status}"

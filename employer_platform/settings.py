@@ -151,4 +151,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+OPENAI_API_KEY="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"
+OPENAI_API_BASE="https://api.openai.com/v1/chat/completions" 
+
 

@@ -1,5 +1,5 @@
 from celery import shared_task
-from business.services.matching import find_best_freelancer
+from business.services.matching import find_best_candidate
 from business.models import Task
 
 @shared_task
@@ -10,9 +10,9 @@ def reassign_unassigned_tasks():
     unassigned_tasks = Task.objects.filter(is_assigned=False)
 
     for task in unassigned_tasks:
-        best_freelancer = find_best_freelancer(task)
-        if best_freelancer:
-            task.assign_task(best_freelancer)
+        find_best_candidate = find_best_candidate(task)
+        if find_best_candidate:
+            task.assign_task(find_best_candidate)
 
     return f"{unassigned_tasks.count()} tasks processed"
 
@@ -23,7 +23,7 @@ def auto_assign_freelancers():
     unassigned_tasks = Task.objects.filter(status='pending', assigned_user=None)
 
     for task in unassigned_tasks:
-        freelancer = find_best_freelancer(task)
+        freelancer = find_best_candidate(task)
         if freelancer:
             task.assign_task(freelancer)
 

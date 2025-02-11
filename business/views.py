@@ -1,10 +1,15 @@
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
-from .models import AIEmployer, Business, AIEmployerSettings
-from .serializers import AIEmployerSerializer, BusinessSerializer, AIEmployerSettingsSerializer
+
+from business.utils.task_generator import AutonomousTaskGenerator
+
+from .models import AIEmployer, Business, AIEmployerSettings,Task, TaskCategory
+from .serializers import AIEmployerSerializer, BusinessSerializer, AIEmployerSettingsSerializer, TaskSerializer
 from rest_framework.permissions import IsAuthenticated
+from business.utils.task_categorization import categorize_task  # Import AI categorization function
 
 
 class CreateBusinessAPIView(APIView):
@@ -106,3 +111,60 @@ class AIEmployerSettingsAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TaskCategorizationView(APIView):
+    """
+    API endpoint to create a task and auto-categorize it using AI.
+    """
+    
+    def post(self, request):
+        serializer = TaskSerializer(data=request.data)
+        if serializer.is_valid():
+            task = serializer.save()
+
+            # AI-based categorization
+            category = categorize_task(task.description)
+
+            if category:
+                task.category = category
+                task.save()
+
+            return Response({
+                "message": "Task created successfully",
+                "task": TaskSerializer(task).data
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# @api_view(['POST'])
+# def generate_ai_tasks(request, ai_employer_id):
+#     ai_employer = AIEmployer.objects.get(id=ai_employer_id)
+#     task_generator = AutonomousTaskGenerator(ai_employer)
+#     generated_tasks = task_generator.generate_autonomous_tasks()
+    
+#     return JsonResponse({
+#         'tasks': generated_tasks
+#     })
+
+@api_view(['POST'])
+def generate_ai_tasks(request, ai_employer_id):
+    ai_employer = AIEmployer.objects.get(id=ai_employer_id)
+    task_generator = AutonomousTaskGenerator(ai_employer)
+    generated_tasks = task_generator.generate_autonomous_tasks()
+
+    return JsonResponse({
+        'tasks': [
+            {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'required_skills': task.required_skills,
+                'category': task.category.job_role if task.category else None,
+                'goal_alignment': task.goal_alignment,
+                'urgency': task.urgency,
+                'budget': str(task.budget)  # Convert DecimalField to string
+            }
+            for task in generated_tasks
+        ]
+    }, safe=False)
