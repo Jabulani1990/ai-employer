@@ -1,11 +1,12 @@
 # ai_property_manager/tasks.py
 import logging
 from celery import shared_task
-from .models import PropertyListing
-from .services.data_ingestion import ingest_property_data
-from .services.data_processing import process_property_data
-from .services.nlg_engine import generate_property_description
-from .services.qa_system import validate_property_listing
+
+from ai_workers.ai_property_manager.models import PropertyListing
+from ai_workers.ai_property_manager.services.auto_property_listing.data_ingestion import ingest_property_data
+from ai_workers.ai_property_manager.services.auto_property_listing.data_processing import process_property_data
+from ai_workers.ai_property_manager.services.auto_property_listing.nlg_engine import generate_property_description
+from ai_workers.ai_property_manager.services.auto_property_listing.qa_system import validate_property_listing
 
 logger = logging.getLogger(__name__)
 

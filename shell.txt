@@ -1,0 +1,16 @@
+from ai_workers.ai_property_manager.services.auto_property_listing.data_ingestion import DataIngestion
+
+json_data = '''
+[
+    {"title": "Luxury Villa", "description": "Beautiful home", "price": 500000, "location": "Lagos", "bedrooms": 5, "bathrooms": 4, "area": 300, "is_published": true},
+    {"title": "Farmland", "description": "5 acres of land", "price": 20000, "location": "Ogun", "area": 5000, "is_published": true}
+]
+'''
+
+print(DataIngestion.ingest_from_json(json_data))
+
+
+from ai_workers.ai_property_manager.services.auto_property_listing.data_processing import DataProcessing
+
+print(DataProcessing.process_data("dirty_properties.csv"))
+
