@@ -1,7 +1,17 @@
 import pandas as pd
 import numpy as np
+import logging
 from ai_workers.ai_property_manager.models import PropertyListing
 from ai_workers.ai_property_manager.services.auto_property_listing.nlg_engine import NLG
+from ai_workers.ai_property_manager.services.auto_property_listing.qa_system import QualityAssurance
+
+# Configure logging for data processing
+logging.basicConfig(
+    filename="data_processing.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
 
 class DataProcessing:
     """Handles cleaning, standardization, feature extraction, and classification of property data"""
@@ -100,6 +110,8 @@ class DataProcessing:
     def process_data(csv_path):
         """Full processing pipeline"""
         try:
+            logging.info(f"Starting data processing for file: {csv_path}")
+
             df = pd.read_csv(csv_path)
             df = DataProcessing.clean_data(df)
             df = DataProcessing.standardize_data(df)
@@ -110,6 +122,9 @@ class DataProcessing:
 
              # 🔹 Generate descriptions - USING TEMPLATE METHOD OR LLM
             df["description"] = df.apply(NLG.generate_description_openai, axis=1)
+
+            # Run Quality Assurance Checks before saving to DB
+            df = QualityAssurance.process_quality_assurance(df)
             
             return DataProcessing.save_to_database(df)
         except Exception as e:

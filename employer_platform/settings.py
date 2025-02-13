@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -155,5 +156,9 @@ SIMPLE_JWT = {
 
 OPENAI_API_KEY="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"
 OPENAI_API_BASE="https://api.openai.com/v1/chat/completions" 
+
+MEDIA_URL = "/media/"  # URL for accessing media files
+MEDIA_ROOT = BASE_DIR / "media"
+
 
 

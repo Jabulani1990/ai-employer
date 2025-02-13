@@ -1,5 +1,7 @@
 from django.db import models
 import uuid
+from PIL import Image
+from django.core.files.storage import default_storage
 
 class PropertyListing(models.Model):
     """Stores auto-generated property listings (houses, land, apartments, etc.)"""
@@ -62,3 +64,30 @@ class PropertyListing(models.Model):
     
     def __str__(self):
         return f"{self.title} - {self.property_type} ({self.listing_type})"
+    
+
+class PropertyMedia(models.Model):
+    property = models.ForeignKey(PropertyListing, on_delete=models.CASCADE, related_name="media")
+    file = models.FileField(upload_to="property_media/")
+    file_type = models.CharField(
+        max_length=10,
+        choices=[("image", "Image"), ("document", "Document")],
+        default="image",
+    )
+
+    def __str__(self):
+        return f"{self.property.title} - {self.file.name}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Optimize images only using Pillow package
+        if self.file_type == "image":
+            img = Image.open(self.file.path)
+
+            # Resize if larger than 1080p
+            if img.height > 1080 or img.width > 1920:
+                output_size = (1920, 1080)
+                img.thumbnail(output_size)
+                img.save(self.file.path, quality=85, optimize=True)
+

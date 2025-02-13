@@ -4,7 +4,7 @@ from ai_workers.ai_property_manager.models import PropertyListing
 
 class DataIngestion:
     """Handles property data ingestion from multiple sources"""
-
+    
     @staticmethod
     def ingest_from_json(json_data):
         """Ingest property listings from a JSON payload"""

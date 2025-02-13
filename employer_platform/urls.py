@@ -16,10 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+from ai_workers.ai_property_manager.views import PropertyMediaUploadView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/business/', include('business.urls')),
-    path('api/account/', include('accounts.urls'))
+    path('api/account/', include('accounts.urls')),
+    path('api/ai-property-manager/upload-property-media/', PropertyMediaUploadView.as_view(), name="upload-property-media"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

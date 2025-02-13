@@ -1,0 +1,6 @@
+2025-02-13 03:29:45,508 - INFO - Starting data processing for file: dirty_properties.csv
+2025-02-13 03:29:56,037 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-13 03:30:06,174 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-13 03:30:16,004 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-13 03:30:16,007 - INFO - Starting quality assurance checks on property listings...
+2025-02-13 03:30:16,013 - INFO - Quality assurance checks completed.
