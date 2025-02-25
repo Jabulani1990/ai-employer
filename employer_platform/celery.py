@@ -10,4 +10,8 @@ celery_app = Celery("employer_platform")
 celery_app.config_from_object("django.conf:settings", namespace="CELERY")
 
 # Auto-discover tasks from installed apps
-celery_app.autodiscover_tasks()
+#celery_app.autodiscover_tasks()
+
+celery_app.autodiscover_tasks([
+    "ai_workers.ai_property_manager"
+])

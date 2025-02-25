@@ -159,6 +159,6 @@ OPENAI_API_BASE="https://api.openai.com/v1/chat/completions"
 
 MEDIA_URL = "/media/"  # URL for accessing media files
 MEDIA_ROOT = BASE_DIR / "media"
-
+GEMINI_API_KEY ="AIzaSyB9Yov-FP69tFeVINR_LwX1WFsjbUBhiW4"
 
 

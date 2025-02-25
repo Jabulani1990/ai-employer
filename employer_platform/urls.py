@@ -26,7 +26,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/business/', include('business.urls')),
     path('api/account/', include('accounts.urls')),
+    path('api/ai-property-manager/', include('ai_workers.ai_property_manager.urls')),
     path('api/ai-property-manager/upload-property-media/', PropertyMediaUploadView.as_view(), name="upload-property-media"),
+    path('api/workers/', include('ai_workers.urls')),
 ]
 
 if settings.DEBUG:

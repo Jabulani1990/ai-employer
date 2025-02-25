@@ -1,6 +1,33 @@
-Start worker
-celery -A employer_platform worker --loglevel=info
+Start worker - prefork
+celery -A employer_platform worker --loglevel=info --pool=prefork
 
 Start Scheduler
 celery -A employer_platform beat --loglevel=info
 
+WORKS ON WINDOW
+celery -A employer_platform worker --loglevel=info --pool=solo
+
+CLEAR QUEUE
+celery -A employer_platform purge
+celery -A employer_platform worker --loglevel=info --pool=solo
+
+info@gtextandassociates.com
+>$KzG$zQ4y
+
+info
+Challenges
+Jabulani009$
+
+streaming server 
+admin
+Jabulani009$
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/sallenco.online/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/sallenco.online/privkey.pem
+This certificate expires on 2025-05-18.
+These files will be updated when the certificate renews.
+Certbot has set up a scheduled task to automatically renew this certificate in the background.
+
+php artisan jwt:secret
+jwt-auth secret [gmMGW798JmYpJuy73XnuBSRvEpYLmgUgomLxS5bNIZ4VGIrwGwNSw0TmJVSQ6zKw] set successfully.

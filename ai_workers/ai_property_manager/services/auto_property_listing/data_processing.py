@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 import logging
-from ai_workers.ai_property_manager.models import PropertyListing
+from ai_workers.ai_property_manager.models import PropertyListing, PropertyMedia, TemporaryMedia
 from ai_workers.ai_property_manager.services.auto_property_listing.nlg_engine import NLG
 from ai_workers.ai_property_manager.services.auto_property_listing.qa_system import QualityAssurance
+from fuzzywuzzy import fuzz
 
 # Configure logging for data processing
 logging.basicConfig(
@@ -105,6 +106,7 @@ class DataProcessing:
             )
         PropertyListing.objects.bulk_create(properties)
         return f"Saved {len(properties)} properties to the database."
+    
 
     @staticmethod
     def process_data(csv_path):
@@ -120,12 +122,103 @@ class DataProcessing:
             df = DataProcessing.analyze_market(df)
             df = DataProcessing.remove_duplicates(df)
 
-             # 🔹 Generate descriptions - USING TEMPLATE METHOD OR LLM
-            df["description"] = df.apply(NLG.generate_description_openai, axis=1)
+            # 🔹 Generate descriptions - USING TEMPLATE METHOD OR LLM
+            #df["description"] = df.apply(NLG.generate_description_openai, axis=1)
+            df["description"] = df.apply(NLG.generate_description_gemini, axis=1)
+            
 
             # Run Quality Assurance Checks before saving to DB
             df = QualityAssurance.process_quality_assurance(df)
-            
-            return DataProcessing.save_to_database(df)
+
+            # ✅ Save to database
+            saved_properties = DataProcessing.save_to_database(df)
+
+            # 🔄 Auto-Match Media for Each Property
+            for property_instance in saved_properties:
+                DataProcessing.match_temporary_media(property_instance)
+
+            logging.info("✅ CSV processing and media matching completed.")
+
+            return saved_properties
         except Exception as e:
             return f"Error in data processing: {str(e)}"
+
+    # @staticmethod -   Working but approach not smart Commented out to avoid conflicts with the updated method
+    # def match_temporary_media(property_instance):
+    #     """
+    #     Matches temporary media to properties based on extracted property names.
+    #     """
+    #     try:
+    #         unmatched_media = TemporaryMedia.objects.filter(matched_property__isnull=True)
+
+    #         for temp_media in unmatched_media:
+
+    #             print(f"🔍 Matching media: {temp_media.extracted_property_name}")
+
+    #             extracted_name = temp_media.extracted_property_name.strip().lower()  # Normalize input
+
+    #             potential_matches = PropertyListing.objects.filter(title__icontains=extracted_name)
+    #             print(f"🔍 Found {potential_matches.count()} matches")
+
+
+    #             if potential_matches.exists():
+    #                 matched_property = potential_matches.first()  # Pick the first match
+    #                 temp_media.matched_property = matched_property
+    #                 temp_media.save()
+
+    #                 # Move the media to PropertyMedia
+    #                 PropertyMedia.objects.create(property=matched_property, file=temp_media.file)
+
+    #                 print(f"✅ Matched {getattr(temp_media.file, 'name', 'Unknown File')} to {getattr(matched_property, 'title', 'Unknown Property')}")
+
+
+    #         return f"✅ {unmatched_media.count()} media files processed."
+
+    #     except Exception as e:
+    #         print(f"❌ Error matching media: {str(e)}")
+
+
+
+    @staticmethod
+    def match_temporary_media(property_instance):
+        """
+        Matches temporary media to properties using fuzzy matching for better accuracy.
+        """
+        try:
+            unmatched_media = TemporaryMedia.objects.filter(matched_property__isnull=True)
+
+            for temp_media in unmatched_media:
+                extracted_name = temp_media.extracted_property_name.strip().lower()  # Normalize input
+
+                print(f"🔍 Matching media: {extracted_name}")
+
+                best_match = None
+                best_score = 0  # Store highest similarity score
+                
+                # Fetch all properties to compare
+                potential_matches = PropertyListing.objects.all()
+
+                for property_listing in potential_matches:
+                    property_title = property_listing.title.strip().lower()
+                    similarity_score = fuzz.ratio(extracted_name, property_title)  # Compute similarity
+
+                    print(f"🔍 Comparing '{extracted_name}' with '{property_title}' - Score: {similarity_score}")
+
+                    # Check if similarity score is high enough (adjust threshold if needed)
+                    if similarity_score > best_score and similarity_score >= 80:  # Threshold set at 80%
+                        best_match = property_listing
+                        best_score = similarity_score
+
+                if best_match:
+                    temp_media.matched_property = best_match
+                    temp_media.save()
+
+                    # Move the media to PropertyMedia
+                    PropertyMedia.objects.create(property=best_match, file=temp_media.file)
+
+                    print(f"✅ Matched {getattr(temp_media.file, 'name', 'Unknown File')} to {best_match.title} with confidence {best_score}%")
+
+            return f"✅ {unmatched_media.count()} media files processed."
+
+        except Exception as e:
+            print(f"❌ Error matching media: {str(e)}")

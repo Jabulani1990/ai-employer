@@ -1,0 +1,4 @@
+title,description,price,location,bedrooms,bathrooms,area,is_published,is_suspicious
+Office Complex,Modern office building with parking,900000,lagos,0,4,1200.0,True,True
+Garden Estate,Gated community with security,350000,abuja,5,4,300.0,True,False
+Rural Homestead,Peaceful countryside property,80000,osun,3,2,2000.0,True,False
