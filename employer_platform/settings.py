@@ -154,7 +154,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-OPENAI_API_KEY="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"
+OPENAI_API_KEY="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"
 OPENAI_API_BASE="https://api.openai.com/v1/chat/completions" 
 
 MEDIA_URL = "/media/"  # URL for accessing media files

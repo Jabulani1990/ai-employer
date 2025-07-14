@@ -187,6 +187,31 @@ class AutonomousDiscoveryEngine:
         }
 
 
+# class Command(BaseCommand):
+#     help = "Watches for new CSV files in media/uploads and processes them"
+
+#     def handle(self, *args, **kwargs):
+#         watch_directory = "media/uploads"
+#         processed_files = set()
+
+#         self.stdout.write(self.style.SUCCESS("Starting file watcher..."))
+
+#         while True:
+#             files = set(os.listdir(watch_directory))
+#             new_files = files - processed_files
+
+#             for file in new_files:
+#                 if file.endswith(".csv"):
+#                     file_path = os.path.join(watch_directory, file)
+#                     self.stdout.write(self.style.SUCCESS(f"Processing: {file_path}"))
+#                     DataProcessing.process_data(file_path)
+
+#             processed_files = files
+#             time.sleep(5)  # Check every 5 seconds
+
+
+
+
 class Command(BaseCommand):
     """
     🔄 TRANSFORMATION: From Reactive to Autonomous File Watcher
@@ -256,46 +281,31 @@ class Command(BaseCommand):
                     )
                     self.last_discovery_run = current_time
             
-            # 📁 FILE PROCESSING: Enhanced with autonomous intelligence
-            # Note: ALL modes process files, but autonomous/hybrid modes add intelligence
-            files = set(os.listdir(watch_directory)) if os.path.exists(watch_directory) else set()
-            new_files = files - processed_files
+            # 📁 REACTIVE BEHAVIOR: Traditional file watching (enhanced)
+            if mode in ['reactive', 'hybrid']:
+                files = set(os.listdir(watch_directory)) if os.path.exists(watch_directory) else set()
+                new_files = files - processed_files
 
-            for file in new_files:
-                if file.endswith(".csv"):
-                    file_path = os.path.join(watch_directory, file)
-                    
-                    if mode == 'reactive':
-                        # 📁 REACTIVE MODE: Simple processing (original behavior)
+                for file in new_files:
+                    if file.endswith(".csv"):
+                        file_path = os.path.join(watch_directory, file)
+                        
+                        # 🎯 ENHANCED PROCESSING: Add context from discovery engine
+                        business_context = self._get_business_context_for_file(file_path)
+                        
                         self.stdout.write(
                             self.style.SUCCESS(f"📄 Processing: {file_path}")
-                        )
-                        process_csv_task.delay(file_path)
-                        
-                    elif mode in ['autonomous', 'hybrid']:
-                        # 🤖 AUTONOMOUS/HYBRID MODE: Enhanced processing with intelligence
-                        business_context = self._get_business_context_for_file(file_path)
-                        processing_strategy = self._determine_processing_strategy(file_path)
-                        
-                        self.stdout.write(
-                            self.style.SUCCESS(f"🤖 Autonomous Processing: {file_path}")
                         )
                         
                         if business_context:
                             self.stdout.write(
                                 self.style.HTTP_INFO(f"🧠 Context: {business_context}")
                             )
-                        
-                        if processing_strategy:
-                            self.stdout.write(
-                                self.style.HTTP_INFO(f"⚡ Strategy: {processing_strategy}")
-                            )
 
                         # Send task to Celery with enhanced context
-                        # TODO: In next iteration, we'll pass the context to the task
                         process_csv_task.delay(file_path)
 
-            processed_files = files
+                processed_files = files
             
             # Sleep with intelligent interval adjustment
             sleep_time = 5 if mode == 'reactive' else max(5, self.discovery_interval // 60)
@@ -321,26 +331,3 @@ class Command(BaseCommand):
             
         except Exception as e:
             return f"Context analysis failed: {str(e)}"
-    
-    def _determine_processing_strategy(self, file_path):
-        """
-        ⚡ AUTONOMOUS STRATEGY: Determine optimal processing approach
-        
-        This is autonomous intelligence - adapting processing based on learned patterns
-        """
-        try:
-            filename = os.path.basename(file_path)
-            file_size = os.path.getsize(file_path)
-            
-            # Determine strategy based on file characteristics and learned patterns
-            if file_size > 1024 * 1024:  # > 1MB
-                return "Large file detected - using batch processing with progress tracking"
-            elif file_size < 1024:  # < 1KB  
-                return "Small file detected - using rapid processing mode"
-            elif len(self.discovery_engine.business_patterns) > 0:
-                return "Standard processing with learned business pattern optimization"
-            else:
-                return "First-time processing - will establish baseline patterns"
-                
-        except Exception as e:
-            return f"Strategy analysis failed: {str(e)} - using default processing"

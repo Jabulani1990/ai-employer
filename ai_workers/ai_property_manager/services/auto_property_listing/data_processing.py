@@ -123,8 +123,8 @@ class DataProcessing:
             df = DataProcessing.remove_duplicates(df)
 
             # 🔹 Generate descriptions - USING TEMPLATE METHOD OR LLM
-            #df["description"] = df.apply(NLG.generate_description_openai, axis=1)
-            df["description"] = df.apply(NLG.generate_description_gemini, axis=1)
+            df["description"] = df.apply(NLG.generate_description_openai, axis=1)
+            
             
 
             # Run Quality Assurance Checks before saving to DB

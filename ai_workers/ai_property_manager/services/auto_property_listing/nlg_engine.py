@@ -3,6 +3,9 @@ import random
 import openai
 from django.conf import settings
 import google.generativeai as genai
+from langchain_openai import ChatOpenAI
+from langchain.schema import HumanMessage, SystemMessage
+from langchain.prompts import ChatPromptTemplate
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +36,15 @@ class NLG:
     
     @staticmethod
     def generate_description_openai(row):
-        """Uses OpenAI GPT to generate property descriptions."""
-        openai_client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)  # ✅ New API format
+        """Uses OpenAI GPT via LangChain to generate property descriptions."""
+        
+        # Initialize LangChain ChatOpenAI
+        llm = ChatOpenAI(
+            model="gpt-4",
+            temperature=0.7,
+            max_tokens=200,
+            openai_api_key=settings.OPENAI_API_KEY
+        )
 
         prompt = f"""
         Generate a compelling real estate listing description for a property with the following details:
@@ -50,17 +60,16 @@ class NLG:
         """
 
         try:
-            response = openai_client.chat.completions.create(  # ✅ New API format
-                model="gpt-4",
-                messages=[{"role": "system", "content": "You are a professional real estate listing assistant."},
-                          {"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=200
-            )
-            return response.choices[0].message.content.strip()
+            messages = [
+                SystemMessage(content="You are a professional real estate listing assistant."),
+                HumanMessage(content=prompt)
+            ]
+            
+            response = llm.invoke(messages)
+            return response.content.strip()
 
         except Exception as e:
-            return f"AI Description Error: {str(e)}"
+            return f"LangChain OpenAI Description Error: {str(e)}"
         
 
 
@@ -99,3 +108,58 @@ class NLG:
 
         except Exception as e:
             return f"AI Description Error: {str(e)}"
+    
+    @staticmethod
+    def generate_description_langchain_advanced(row):
+        """Uses LangChain with prompt templates for better prompt management."""
+        
+        # Initialize LangChain ChatOpenAI
+        llm = ChatOpenAI(
+            model="gpt-4",
+            temperature=0.7,
+            max_tokens=200,
+            openai_api_key=settings.OPENAI_API_KEY
+        )
+
+        # Create a prompt template
+        prompt_template = ChatPromptTemplate.from_messages([
+            ("system", "You are a professional real estate listing assistant."),
+            ("human", """
+            Generate a compelling real estate listing description for a property with the following details:
+            - Location: {location}
+            - Type: {property_type}
+            - Price: ${price}
+            - Bedrooms: {bedrooms}
+            - Bathrooms: {bathrooms}
+            - Area: {area} sqft
+            - Market Status: {market_status}
+
+            The description should be engaging, highlight unique selling points, and be appealing to buyers.
+            """)
+        ])
+
+        try:
+            # Prepare the data
+            market_status = (
+                'Overpriced' if row.get('is_overpriced', False) 
+                else 'Underpriced' if row.get('is_underpriced', False) 
+                else 'Fairly Priced'
+            )
+            
+            # Format the prompt
+            formatted_prompt = prompt_template.format_messages(
+                location=row['location'].title(),
+                property_type=row.get('property_type', 'home'),
+                price=int(row['price']),
+                bedrooms=row['bedrooms'],
+                bathrooms=row['bathrooms'],
+                area=int(row['area']),
+                market_status=market_status
+            )
+            
+            # Generate response
+            response = llm.invoke(formatted_prompt)
+            return response.content.strip()
+
+        except Exception as e:
+            return f"LangChain Advanced Description Error: {str(e)}"
