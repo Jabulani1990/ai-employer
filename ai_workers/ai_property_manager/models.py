@@ -5,6 +5,7 @@ from PIL import Image, UnidentifiedImageError
 from django.core.files.storage import default_storage
 from django.utils import timezone
 import hashlib
+from business.models import Business, AIEmployer
 
 def unique_media_filename(instance, filename):
     """Generate a unique filename using UUID."""
@@ -37,6 +38,11 @@ class PropertyListing(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # 🏢 BUSINESS ISOLATION: Connect property to specific business
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='properties')
+    ai_employer = models.ForeignKey(AIEmployer, on_delete=models.CASCADE, related_name='properties', null=True, blank=True)
+    
     title = models.CharField(max_length=255)
     description = models.TextField()
     property_type = models.CharField(max_length=50, choices=PROPERTY_TYPES)

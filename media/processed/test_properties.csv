@@ -1,0 +1,4 @@
+title,description,price,location,bedrooms,bathrooms,area,is_published,is_suspicious
+Luxury Villa,Beautiful home,500000,lagos,5,4,300.0,True,False
+Farmland,5 acres of land,20000,ogun,0,0,5000.0,True,False
+Cheap House,Needs repairs,5000,abuja,3,2,200.0,True,True

@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_celery_beat',
     'ai_workers',
-    'ai_workers.ai_property_manager'
+    'ai_workers.ai_property_manager',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

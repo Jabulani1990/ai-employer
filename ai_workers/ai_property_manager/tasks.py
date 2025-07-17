@@ -1,4 +1,3 @@
-
 import os
 import shutil
 import logging
@@ -54,34 +53,171 @@ class AutonomousTaskExecutor:
             
         except Exception as e:
             print(f"⚠️ Failed to initialize execution tracking: {str(e)}")
-            
+    
+    # 🚀 FUTURE ENHANCEMENT: Advanced Autonomous Features
+    def _advanced_context_analysis(self, file_path):
+        """
+        🔬 ADVANCED ANALYSIS: Deep context understanding for next-level autonomy
+        
+        Future enhancements could include:
+        1. Content-based strategy selection (analyze CSV headers/data types)
+        2. Time-based optimization (peak hours vs off-hours processing)
+        3. Resource-aware scheduling (CPU/memory availability)
+        4. Cross-business learning (patterns from similar businesses)
+        """
+        # TODO: Implement advanced context analysis
+        pass
+    
+    def _predictive_resource_management(self):
+        """
+        🔮 PREDICTIVE SCALING: Anticipate resource needs based on patterns
+        
+        Could include:
+        1. Auto-scaling based on predicted workload
+        2. Preemptive resource allocation
+        3. Queue optimization
+        4. Load balancing across workers
+        """
+        # TODO: Implement predictive resource management
+        pass
+    
+    def _autonomous_error_recovery(self, error):
+        """
+        🔧 SELF-HEALING: Autonomous error recovery and adaptation
+        
+        Features:
+        1. Auto-retry with different strategies
+        2. Fallback processing modes
+        3. Self-diagnosis and repair
+        4. Alert escalation when needed
+        """
+        # TODO: Implement autonomous error recovery
+        pass
+    
     def _determine_optimal_strategy(self, file_size):
         """
-        ⚡ ADAPTIVE STRATEGY: Choose optimal processing approach
+        ⚡ ADAPTIVE STRATEGY: Choose optimal processing approach based on learning
         
-        This is autonomous intelligence - adapting approach based on file characteristics
+        This is autonomous intelligence - adapting approach based on:
+        1. File characteristics 
+        2. Historical performance data
+        3. Learned patterns and success rates
         """
+        
+        # Step 1: Get base strategy based on file size (fallback)
+        base_strategy = self._get_base_strategy_by_size(file_size)
+        
+        # Step 2: Enhance with learning-based optimization
+        try:
+            from ai_workers.models import AIWorkerLearningRecord, BusinessAIWorker
+            
+            # Find business worker for learning context
+            business_worker = BusinessAIWorker.objects.filter(
+                ai_worker__name="AI Property Manager",
+                status="active"
+            ).first()
+            
+            if business_worker:
+                optimized_strategy = self._optimize_strategy_with_learning(
+                    base_strategy, file_size, business_worker
+                )
+                print(f"🧠 Strategy optimized with learning data")
+                return optimized_strategy
+                
+        except Exception as e:
+            print(f"⚠️ Learning optimization failed, using base strategy: {str(e)}")
+        
+        return base_strategy
+    
+    def _get_base_strategy_by_size(self, file_size):
+        """Get basic strategy based on file size (fallback when no learning data)"""
         if file_size > 5 * 1024 * 1024:  # > 5MB
             return {
                 "mode": "high_performance",
                 "batch_size": 100,
-                "ai_model": "gemini",  # Faster for large batches
+                "ai_model": "gemini",
                 "description": "Large file - optimized for throughput"
             }
         elif file_size < 10 * 1024:  # < 10KB
             return {
                 "mode": "rapid_processing", 
                 "batch_size": 10,
-                "ai_model": "template",  # Skip AI for very small files
+                "ai_model": "template",
                 "description": "Small file - rapid template processing"
             }
         else:
             return {
                 "mode": "balanced",
                 "batch_size": 50,
-                "ai_model": "openai",  # Best quality for standard files
+                "ai_model": "openai",
                 "description": "Standard file - balanced processing"
             }
+    
+    def _optimize_strategy_with_learning(self, base_strategy, file_size, business_worker):
+        """
+        🎯 LEARNING-BASED OPTIMIZATION: Use historical data to improve strategy
+        
+        This is the core of autonomous improvement - learning from past performance
+        """
+        try:
+            from ai_workers.models import AIWorkerLearningRecord
+            
+            # Find similar file size executions
+            file_size_range = file_size * 0.5  # ±50% file size tolerance
+            similar_executions = AIWorkerLearningRecord.objects.filter(
+                business_worker=business_worker,
+                execution_status='success',
+                file_size__gte=file_size - file_size_range,
+                file_size__lte=file_size + file_size_range
+            ).order_by('-created_at')[:10]  # Last 10 similar executions
+            
+            if similar_executions.exists():
+                # Analyze which strategy performed best
+                strategy_performance = {}
+                
+                for record in similar_executions:
+                    strategy = record.strategy_used
+                    efficiency = record.efficiency_score
+                    
+                    if strategy not in strategy_performance:
+                        strategy_performance[strategy] = []
+                    strategy_performance[strategy].append(efficiency)
+                
+                # Find best performing strategy
+                best_strategy = None
+                best_avg_efficiency = 0
+                
+                for strategy, efficiencies in strategy_performance.items():
+                    avg_efficiency = sum(efficiencies) / len(efficiencies)
+                    if avg_efficiency > best_avg_efficiency:
+                        best_avg_efficiency = avg_efficiency
+                        best_strategy = strategy
+                
+                if best_strategy and best_strategy != base_strategy['mode']:
+                    # Override base strategy with learned optimal strategy
+                    optimized = base_strategy.copy()
+                    optimized['mode'] = best_strategy
+                    optimized['description'] = f"Learning-optimized: {best_strategy} (avg efficiency: {best_avg_efficiency:.1f})"
+                    
+                    # Adjust AI model based on learned performance
+                    if best_strategy == 'high_performance':
+                        optimized['ai_model'] = 'gemini'
+                        optimized['batch_size'] = 100
+                    elif best_strategy == 'rapid_processing':
+                        optimized['ai_model'] = 'template'
+                        optimized['batch_size'] = 10
+                    
+                    print(f"📈 Strategy optimized based on {len(similar_executions)} similar executions")
+                    return optimized
+                
+                print(f"📊 Analyzed {len(similar_executions)} similar executions - base strategy confirmed optimal")
+            else:
+                print(f"🆕 No similar execution history - using base strategy for learning")
+                
+        except Exception as e:
+            print(f"⚠️ Learning analysis failed: {str(e)}")
+        
+        return base_strategy
     
     def execute_with_learning(self, file_path, business_context=None):
         """
@@ -195,15 +331,86 @@ class AutonomousTaskExecutor:
     
     def _save_learning_to_system(self, learning_record):
         """
-        💾 PERSISTENT LEARNING: Save learnings for future use
+        💾 PERSISTENT LEARNING: Save learnings to database for future optimization
         
-        This enables the system to remember and improve over time
+        This enables true autonomous behavior - the system remembers and improves over time
         """
-        # For now, just log - in next iteration we'll save to database
-        logger.info(f"Learning saved: {learning_record['execution_id']}")
-        
-        # TODO: Save to BusinessAITaskExecution or new LearningRecord model
-        # This will enable the system to analyze patterns and optimize over time
+        try:
+            from ai_workers.models import AIWorkerLearningRecord, BusinessAIWorker
+            
+            # Find the business worker (for now, we'll use the first property manager worker)
+            # TODO: In production, identify the specific business from file context
+            business_worker = BusinessAIWorker.objects.filter(
+                ai_worker__name="AI Property Manager",
+                status="active"
+            ).first()
+            
+            if not business_worker:
+                logger.warning("No active Property Manager found - creating learning record without business context")
+                return
+            
+            # Extract data from learning record
+            context = learning_record.get('context', {})
+            strategy = context.get('processing_strategy', {})
+            
+            # Create persistent learning record
+            AIWorkerLearningRecord.objects.create(
+                business_worker=business_worker,
+                execution_id=learning_record['execution_id'],
+                task_name=self.task_name,
+                execution_status='success' if learning_record['success'] else 'failure',
+                execution_time=learning_record['execution_time'],
+                
+                # File and strategy context
+                file_size=context.get('file_size', 0),
+                strategy_used=strategy.get('mode', 'balanced'),
+                ai_model_used=strategy.get('ai_model', 'openai'),
+                processing_mode=strategy.get('mode', 'balanced'),
+                
+                # Learning data
+                context_data=context,
+                result_data=learning_record.get('result', {}),
+                error_details=learning_record.get('error'),
+                learning_insights=learning_record['learning_insights'],
+                business_context=context.get('business_context', ''),
+                
+                # Performance metrics (we'll calculate these from results)
+                properties_processed=self._extract_properties_count(learning_record),
+                processing_rate=self._calculate_processing_rate(learning_record),
+                success_rate=100.0 if learning_record['success'] else 0.0
+            )
+            
+            logger.info(f"✅ Learning persisted: {learning_record['execution_id']}")
+            print(f"💾 Learning saved to database: {learning_record['execution_id']}")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to save learning record: {str(e)}")
+            print(f"⚠️ Learning save failed: {str(e)}")
+    
+    def _extract_properties_count(self, learning_record):
+        """Extract number of properties processed from results"""
+        try:
+            result = learning_record.get('result', {})
+            if isinstance(result, dict):
+                # Look for property count in various result formats
+                return (result.get('properties_count') or 
+                       result.get('total_properties') or 
+                       result.get('processed_count') or 0)
+            return 0
+        except:
+            return 0
+    
+    def _calculate_processing_rate(self, learning_record):
+        """Calculate properties processed per second"""
+        try:
+            execution_time = learning_record.get('execution_time', 0)
+            properties_count = self._extract_properties_count(learning_record)
+            
+            if execution_time > 0 and properties_count > 0:
+                return round(properties_count / execution_time, 2)
+            return 0.0
+        except:
+            return 0.0
         
     def _archive_processed_file(self, file_path):
         """📁 FILE MANAGEMENT: Archive processed files"""
