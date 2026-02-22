@@ -19,6 +19,12 @@ class AIEmployerSerializer(serializers.ModelSerializer):
         model = AIEmployer
         fields = ['id', 'business', 'budget', 'created_at', 'ai_employer_type', 'location', 'industry_category']
 
+    def validate_business(self, business):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated and business.owner_id != request.user.id:
+            raise serializers.ValidationError("You can only register an AI employer for your own business.")
+        return business
+
 
 class AIEmployerSettingsSerializer(serializers.ModelSerializer):
     class Meta:

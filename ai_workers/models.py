@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
-from business.models import AIEmployer
+from business.models import AIEmployer, Business
 import uuid
 from django.utils.timezone import now
 from decimal import Decimal
@@ -30,7 +30,7 @@ class AIWorker(models.Model):
 class BusinessAIWorker(models.Model):
     """Stores AI Worker instances for businesses"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    business = models.ForeignKey(User, on_delete=models.CASCADE)  # Business that owns the AI Worker
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="ai_workers")  # Business that owns the AI Worker
     ai_employer = models.ForeignKey(AIEmployer, on_delete=models.CASCADE, related_name="ai_workers")  # Link to AI Employer
     ai_worker = models.ForeignKey(AIWorker, on_delete=models.CASCADE)  # Links to AIWorker
     configurations = models.JSONField()  # Stores custom settings

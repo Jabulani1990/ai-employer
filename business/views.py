@@ -1,8 +1,9 @@
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 
 from business.utils.task_generator import AutonomousTaskGenerator
 
@@ -26,24 +27,26 @@ class CreateBusinessAPIView(APIView):
 
     
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def register_ai_employer(request):
     """
     Handle the creation of an AI Employer.
     """
     if request.method == 'POST':
-        serializer = AIEmployerSerializer(data=request.data)
+        serializer = AIEmployerSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_ai_employers(request):
     """
     Retrieve the list of AI Employers.
     """
     if request.method == 'GET':
-        ai_employers = AIEmployer.objects.all()
+        ai_employers = AIEmployer.objects.filter(business__owner=request.user)
         serializer = AIEmployerSerializer(ai_employers, many=True)
         return Response(serializer.data)
 
@@ -113,6 +116,7 @@ class AIEmployerSettingsAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TaskCategorizationView(APIView):
+    permission_classes = [IsAuthenticated]
     """
     API endpoint to create a task and auto-categorize it using AI.
     """
@@ -139,7 +143,7 @@ class TaskCategorizationView(APIView):
 
 # @api_view(['POST'])
 # def generate_ai_tasks(request, ai_employer_id):
-#     ai_employer = AIEmployer.objects.get(id=ai_employer_id)
+#     ai_employer = get_object_or_404(AIEmployer, id=ai_employer_id, business__owner=request.user)
 #     task_generator = AutonomousTaskGenerator(ai_employer)
 #     generated_tasks = task_generator.generate_autonomous_tasks()
     
@@ -148,8 +152,9 @@ class TaskCategorizationView(APIView):
 #     })
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def generate_ai_tasks(request, ai_employer_id):
-    ai_employer = AIEmployer.objects.get(id=ai_employer_id)
+    ai_employer = get_object_or_404(AIEmployer, id=ai_employer_id, business__owner=request.user)
     task_generator = AutonomousTaskGenerator(ai_employer)
     generated_tasks = task_generator.generate_autonomous_tasks()
 
